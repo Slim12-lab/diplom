@@ -6,9 +6,15 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
-from sqlite import db_start, create_profile, print_list, edit_profile, delete_line
+from sqlite import *
 from Gigachat import send
 import re
+# Импортируем функцию enqueue_in
+from aiogram.utils import executor as dp_executor
+from aiogram import types
+import asyncio
+from datetime import datetime
+
 
 token = '6616246938:AAFvZ9zM8bXuyvYhcnEFdiMBPA5OBnWucFU'
 
@@ -49,8 +55,8 @@ class DeleteProfileState(StatesGroup):
 #Кнопки для основных команд.
 kb = ReplyKeyboardMarkup(resize_keyboard=True,  
                          one_time_keyboard=True)
-button_question = ('/question')
-kb.add(KeyboardButton('/help')).insert(KeyboardButton('/delete')).insert(button_question).insert(KeyboardButton('/add')).insert(KeyboardButton('/list')).insert(KeyboardButton('/edit'))
+
+kb.add(KeyboardButton('/help')).insert(KeyboardButton('/delete')).insert(KeyboardButton('/add')).insert(KeyboardButton('/list')).insert(KeyboardButton('/edit'))
 
 #для запуска
 async def on_startup(_):
@@ -240,4 +246,45 @@ async def delete(message: types.message, state = FSMContext) -> None:
        await message.reply(text='Запись успешно удалена!)', reply_markup = kb)
        await state.finish()
 
-executor.start_polling(dp, skip_updates=True, on_startup=on_startup)
+# Реализуем планирование с использованием enqueue_in
+async def scheduler():
+    while True:
+        await asyncio.sleep(1)
+        now = datetime.now()
+        
+        if now.hour == 23 and now.minute == 54 and now.second == 0:
+            await check_and_send_greetings()
+        await asyncio.sleep(1)
+
+async def check_and_send_greetings():
+    today_date = datetime.now().strftime('%d-%m')
+    # Дожидаемся завершения асинхронной функции get_records_by_date
+    records = await get_records_by_date(today_date)
+
+    # Проверим, что записи получаются корректно
+    print("Records:", records)
+
+    # Создаем список задач для отправки сообщений
+    tasks = []
+    
+    for record in records:
+        user_id = record['user_id']
+        name = record['name']
+        holiday = record['holiday']
+        congrats = record['congrats']
+        message_text = f"Сегодня праздник!\nПоздравляю {name} с {holiday}!\n\n{congrats}"
+        # Добавляем задачу в список
+        tasks.append(bot.send_message(user_id, message_text))
+
+    # Проверим, что у нас есть задачи для выполнения
+    if tasks:
+        # Ожидаем выполнения всех задач
+        await asyncio.gather(*tasks)
+    else:
+        print("No tasks to execute")
+       
+if __name__ == '__main__':
+    loop = asyncio.get_event_loop()
+    loop.create_task(scheduler())
+    loop.create_task(executor.start_polling(dp, on_startup=on_startup))
+    loop.run_forever()

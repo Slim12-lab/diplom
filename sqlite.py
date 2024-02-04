@@ -25,7 +25,7 @@ async def print_list(user_id):
      data = cur.fetchall()
      text = ''
      for idx, row in enumerate(data, start=1):
-        text += f"{idx}. {row[1]} - {row[2]} - {row[3]}\n"
+        text += f"{idx}. {row[0]} - {row[1]} - {row[2]}\n"
      return(f"Вот список твоих записей: \n\n{text}")
 
 async def edit_profile(user_id, number, name, holiday, date):
@@ -54,4 +54,14 @@ async def delete_line(perm, idx):
     
     db.commit()
 
-     
+    # Ваша функция get_records_by_date
+async def get_records_by_date(date):
+    cur.execute("SELECT user, name, holiday, congrats FROM profiles WHERE date=?", (date,))
+    records = cur.fetchall()
+
+    result = []
+    for record in records:
+        user_id, name, holiday, congrats = record
+        result.append({'user_id': user_id, 'name': name, 'holiday': holiday, 'congrats': congrats})
+
+    return result
