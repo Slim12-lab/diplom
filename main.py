@@ -234,8 +234,9 @@ async def holiday_check(message: types.message):
 async def delete(message: types.message, state = FSMContext) -> None:
        async with state.proxy() as data:
               data['del_num'] = message.text
-              await delete_line(data['del_num'])
+              await delete_line(message.from_user.id, data['del_num'])
 
        await message.reply(text='Запись успешно удалена!)', reply_markup = kb)
+       await state.finish()
 
 executor.start_polling(dp, skip_updates=True, on_startup=on_startup)

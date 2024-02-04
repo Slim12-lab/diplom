@@ -20,9 +20,8 @@ async def print_list(user_id):
      cur.execute("SELECT Personid, name, holiday, date FROM profiles WHERE user = ?", (user_id,))
      data = cur.fetchall()
      text = ''
-     for row in data:
-        text += f"{row[0]}. {row[1]} - {row[2]} - {row[3]}\n"
-
+     for idx, row in enumerate(data, start=1):
+        text += f"{idx}. {row[1]} - {row[2]} - {row[3]}\n"
      return(f"Вот список твоих записей: \n\n{text}")
 
 async def edit_profile(user_id, number, name, holiday, date):
@@ -31,8 +30,23 @@ async def edit_profile(user_id, number, name, holiday, date):
     
      db.commit()
 
-async def delete_line(profile_id):
-    cur.execute("DELETE FROM profiles WHERE Personid = ?", (profile_id,))
+async def delete_line(perm, idx):
+    try:
+        idx = int(idx)  # Преобразуем idx в целое число
+    except ValueError:
+        return False  # Вернем False, если idx не является целым числом
+
+    cur.execute("SELECT Personid FROM profiles WHERE user=?", (perm,))
+    data = cur.fetchall()
+    print(data)
+
+    if 1 <= idx <= len(data):
+        task_id_to_delete = data[idx - 1][0]  # Получаем id задачи по номеру idx
+        cur.execute("DELETE FROM profiles WHERE Personid=?", (task_id_to_delete,))
+        db.commit()
+        return True  # Успешное удаление
+    else:
+        return False  # Неверный номер задачи
     
     db.commit()
 
