@@ -7,7 +7,7 @@ from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.dispatcher import FSMContext
 from sqlite import db_start, create_profile, print_list, edit_profile, delete_line
-from openaifunc import send
+from Gigachat import send
 import re
 
 token = '6616246938:AAFvZ9zM8bXuyvYhcnEFdiMBPA5OBnWucFU'
