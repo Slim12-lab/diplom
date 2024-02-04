@@ -139,6 +139,7 @@ async def dateholiday_add(message: types.message, state = FSMContext) -> None:
        async with state.proxy() as data:
               text = await send(f"Напиши поздравление для моего друга {data['name']}, у него будет {data['holiday']}")
               await message.reply(text)
+              data['text'] = text
 
        await create_profile(state, user_id=message.from_user.id)
        await message.reply('Все данные внесены успешно.',
