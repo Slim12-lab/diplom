@@ -1,6 +1,6 @@
 import openai 
 
-openai.api_key = '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'
+openai.api_key = ''
 
 async def send(text):
                 completion = openai.ChatCompletion.create(
